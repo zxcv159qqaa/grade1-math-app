@@ -51,10 +51,10 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
 
         {/* 題目類型標籤 */}
         <div className="text-center mb-6 relative z-10">
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 px-8 py-4 rounded-full border-4 border-purple-300 shadow-lg">
-            <TypeIcon className="w-8 h-8 text-purple-600 animate-pulse" />
-            <span className="text-2xl font-bold text-gray-800">{getTypeLabel(question.type)}</span>
-            <TypeIcon className="w-8 h-8 text-purple-600 animate-pulse" />
+          <div className="inline-flex items-center gap-4 bg-gradient-to-r from-purple-200 via-pink-200 to-purple-200 px-10 py-5 rounded-full border-6 border-purple-500 shadow-2xl">
+            <TypeIcon className="w-12 h-12 text-purple-700 animate-bounce drop-shadow-[0_5px_5px_rgba(126,34,206,0.5)]" />
+            <span className="text-3xl font-black text-gray-800 drop-shadow-md">{getTypeLabel(question.type)}</span>
+            <TypeIcon className="w-12 h-12 text-pink-600 animate-bounce drop-shadow-[0_5px_5px_rgba(219,39,119,0.5)]" />
           </div>
         </div>
 
@@ -81,32 +81,32 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
         {/* 選項按鈕 - 橫向排列，更大更明顯 */}
         <div className="mb-6 relative z-10">
           {/* 提示文字 */}
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <ChevronDown className="w-8 h-8 text-gray-600 animate-bounce" />
-            <p className="text-xl font-bold text-gray-600">選擇答案</p>
-            <ChevronDown className="w-8 h-8 text-gray-600 animate-bounce" />
+          <div className="flex items-center justify-center gap-4 mb-5">
+            <ChevronDown className="w-10 h-10 text-gray-700 animate-bounce drop-shadow-md" />
+            <p className="text-2xl font-black text-gray-800 drop-shadow-sm">選擇答案</p>
+            <ChevronDown className="w-10 h-10 text-gray-700 animate-bounce drop-shadow-md" />
           </div>
 
           {/* 答案按鈕 - 全部橫向排在一起 */}
-          <div className="flex justify-center gap-4 flex-wrap max-w-4xl mx-auto">
+          <div className="flex justify-center gap-5 flex-wrap max-w-4xl mx-auto">
             {(question.options || []).map((option, index) => {
-              let buttonClass = 'min-w-[120px] font-bold text-5xl py-8 px-8 rounded-3xl transition-all border-6 shadow-xl hover:scale-110 ';
+              let buttonClass = 'min-w-[140px] font-black text-6xl py-10 px-10 rounded-3xl transition-all border-8 shadow-2xl hover:scale-125 ';
               let showCheck = false;
               let showX = false;
               
               if (showFeedback && selectedAnswer === option) {
                 if (isCorrect) {
-                  buttonClass += 'bg-gradient-to-br from-green-400 to-green-500 border-green-600 text-white animate-pulse scale-110';
+                  buttonClass += 'bg-gradient-to-br from-green-300 via-green-400 to-green-500 border-green-700 text-white animate-pulse scale-125 drop-shadow-[0_10px_20px_rgba(34,197,94,0.6)]';
                   showCheck = true;
                 } else {
-                  buttonClass += 'bg-gradient-to-br from-red-400 to-red-500 border-red-600 text-white animate-shake';
+                  buttonClass += 'bg-gradient-to-br from-red-300 via-red-400 to-red-500 border-red-700 text-white animate-shake drop-shadow-[0_10px_20px_rgba(239,68,68,0.6)]';
                   showX = true;
                 }
               } else if (showFeedback && option === question.answer) {
-                buttonClass += 'bg-gradient-to-br from-green-400 to-green-500 border-green-600 text-white animate-pulse scale-110';
+                buttonClass += 'bg-gradient-to-br from-green-300 via-green-400 to-green-500 border-green-700 text-white animate-pulse scale-125 drop-shadow-[0_10px_20px_rgba(34,197,94,0.6)]';
                 showCheck = true;
               } else {
-                buttonClass += 'bg-gradient-to-br from-white to-gray-50 border-blue-300 text-gray-900 hover:border-blue-400 hover:shadow-2xl';
+                buttonClass += 'bg-gradient-to-br from-blue-100 via-white to-blue-100 border-blue-500 text-gray-900 hover:border-blue-600 hover:shadow-2xl hover:from-blue-200 hover:to-blue-200';
               }
 
               return (
@@ -116,10 +116,10 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
                   disabled={showFeedback}
                   className={buttonClass}
                 >
-                  <div className="flex flex-col items-center gap-2">
-                    <span>{option}</span>
-                    {showCheck && <CheckCircle2 className="w-10 h-10 animate-bounce" />}
-                    {showX && <XCircle className="w-10 h-10 animate-bounce" />}
+                  <div className="flex flex-col items-center gap-3">
+                    <span className="drop-shadow-md">{option}</span>
+                    {showCheck && <CheckCircle2 className="w-12 h-12 animate-bounce drop-shadow-lg" />}
+                    {showX && <XCircle className="w-12 h-12 animate-bounce drop-shadow-lg" />}
                   </div>
                 </button>
               );
@@ -141,21 +141,21 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
                 </div>
                 
                 <div className="relative z-10">
-                  <div className="flex items-center justify-center gap-4 mb-4">
-                    <PartyPopper className="w-20 h-20 text-green-600 animate-bounce" />
-                    <Star className="w-20 h-20 text-yellow-500 animate-bounce" style={{ animationDelay: '0.2s' } as any} />
-                    <PartyPopper className="w-20 h-20 text-green-600 animate-bounce" style={{ animationDelay: '0.4s' } as any} />
+                  <div className="flex items-center justify-center gap-5 mb-5">
+                    <PartyPopper className="w-24 h-24 text-green-600 animate-bounce drop-shadow-[0_5px_10px_rgba(22,163,74,0.6)]" />
+                    <Star className="w-24 h-24 text-yellow-500 animate-bounce drop-shadow-[0_5px_10px_rgba(234,179,8,0.6)]" style={{ animationDelay: '0.2s' } as any} />
+                    <PartyPopper className="w-24 h-24 text-green-600 animate-bounce drop-shadow-[0_5px_10px_rgba(22,163,74,0.6)]" style={{ animationDelay: '0.4s' } as any} />
                   </div>
-                  <div className="text-5xl text-green-700 font-bold mb-2">
+                  <div className="text-6xl text-green-700 font-black mb-3 drop-shadow-lg">
                     答對了！
                   </div>
-                  <div className="text-3xl text-green-600 font-bold">
-                    太棒了！你好厉害！
+                  <div className="text-4xl text-green-600 font-black drop-shadow-md">
+                    太棒了！你好厲害！
                   </div>
-                  <div className="mt-4 flex items-center justify-center gap-3">
-                    <Star className="w-16 h-16 text-yellow-500 animate-pulse" />
-                    <span className="text-2xl text-green-700 font-bold">+1 星星</span>
-                    <Star className="w-16 h-16 text-yellow-500 animate-pulse" />
+                  <div className="mt-5 flex items-center justify-center gap-4">
+                    <Star className="w-20 h-20 text-yellow-500 animate-spin drop-shadow-[0_5px_10px_rgba(234,179,8,0.7)]" style={{ animationDuration: '2s' } as any} />
+                    <span className="text-3xl text-green-700 font-black drop-shadow-lg">+1 星星</span>
+                    <Star className="w-20 h-20 text-yellow-500 animate-spin drop-shadow-[0_5px_10px_rgba(234,179,8,0.7)]" style={{ animationDuration: '2s' } as any} />
                   </div>
                 </div>
               </div>
@@ -170,15 +170,15 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
                 </div>
                 
                 <div className="relative z-10">
-                  <div className="flex items-center justify-center gap-4 mb-4">
-                    <ThumbsUp className="w-20 h-20 text-orange-600 animate-bounce" />
-                    <Smile className="w-20 h-20 text-orange-600 animate-bounce" style={{ animationDelay: '0.2s' } as any} />
-                    <ThumbsUp className="w-20 h-20 text-orange-600 animate-bounce" style={{ animationDelay: '0.4s' } as any} />
+                  <div className="flex items-center justify-center gap-5 mb-5">
+                    <ThumbsUp className="w-24 h-24 text-orange-600 animate-bounce drop-shadow-[0_5px_10px_rgba(234,88,12,0.6)]" />
+                    <Smile className="w-24 h-24 text-orange-600 animate-bounce drop-shadow-[0_5px_10px_rgba(234,88,12,0.6)]" style={{ animationDelay: '0.2s' } as any} />
+                    <ThumbsUp className="w-24 h-24 text-orange-600 animate-bounce drop-shadow-[0_5px_10px_rgba(234,88,12,0.6)]" style={{ animationDelay: '0.4s' } as any} />
                   </div>
-                  <div className="text-4xl text-orange-700 font-bold mb-2">
+                  <div className="text-5xl text-orange-700 font-black mb-3 drop-shadow-lg">
                     再試試看！
                   </div>
-                  <div className="text-3xl text-orange-600 font-bold">
+                  <div className="text-4xl text-orange-600 font-black drop-shadow-md">
                     你可以的！加油！
                   </div>
                 </div>
