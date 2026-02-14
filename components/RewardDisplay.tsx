@@ -11,12 +11,17 @@ interface RewardDisplayProps {
 }
 
 export default function RewardDisplay({ rewards }: RewardDisplayProps) {
-  const accuracy = rewards.total_questions > 0 
-    ? Math.round((rewards.total_correct / rewards.total_questions) * 100) 
+  // 防止 NaN：確保所有值都是數字
+  const stars = Number(rewards?.stars) || 0;
+  const totalCorrect = Number(rewards?.total_correct) || 0;
+  const totalQuestions = Number(rewards?.total_questions) || 0;
+  
+  const accuracy = totalQuestions > 0 
+    ? Math.round((totalCorrect / totalQuestions) * 100) 
     : 0;
 
   // 計算獲得的獎章數量
-  const badges = Math.floor(rewards.stars / 10);
+  const badges = Math.floor(stars / 10);
 
   return (
     <div className="card mb-8">
@@ -27,7 +32,7 @@ export default function RewardDisplay({ rewards }: RewardDisplayProps) {
           className="bg-gradient-to-br from-yellow-100 to-yellow-200 p-4 rounded-2xl"
         >
           <div className="text-4xl mb-2">⭐</div>
-          <div className="text-2xl font-bold text-yellow-700">{rewards.stars}</div>
+          <div className="text-2xl font-bold text-yellow-700">{stars}</div>
           <div className="text-sm text-yellow-600">星星</div>
         </motion.div>
 
@@ -56,12 +61,12 @@ export default function RewardDisplay({ rewards }: RewardDisplayProps) {
       <div className="mt-6">
         <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
           <span>距離下一個獎章</span>
-          <span>{rewards.stars % 10} / 10 ⭐</span>
+          <span>{stars % 10} / 10 ⭐</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${(rewards.stars % 10) * 10}%` }}
+            animate={{ width: `${(stars % 10) * 10}%` }}
             transition={{ duration: 0.5 }}
             className="bg-gradient-to-r from-yellow-400 to-orange-400 h-full rounded-full"
           />
@@ -69,9 +74,9 @@ export default function RewardDisplay({ rewards }: RewardDisplayProps) {
       </div>
 
       {/* 鼓勵文字 */}
-      {rewards.total_questions > 0 && (
+      {totalQuestions > 0 && (
         <div className="text-center mt-4 text-gray-600">
-          <p>已完成 {rewards.total_questions} 題，答對 {rewards.total_correct} 題！</p>
+          <p>已完成 {totalQuestions} 題，答對 {totalCorrect} 題！</p>
           {accuracy >= 80 && (
             <p className="text-green-600 font-semibold mt-1">👍 表現超棒！繼續加油！</p>
           )}
