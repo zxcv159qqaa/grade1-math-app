@@ -9,7 +9,7 @@ import { useSound } from '@/hooks/useSound';
 import { 
   Star, Trophy, TrendingUp, Volume2, VolumeX, Sparkles, 
   Gamepad2, Flame, Gift, Target, Smile, Meh, Frown,
-  Rocket, Home, ChevronDown
+  Rocket, House, ChevronDown
 } from 'lucide-react';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
@@ -447,9 +447,9 @@ export default function Home() {
           onClick={() => { play('click'); setIsPracticing(false); }}
           className="mt-6 w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white py-4 rounded-3xl font-bold text-xl hover:scale-105 transition-all shadow-xl border-6 border-white flex items-center justify-center gap-3"
         >
-          <Home className="w-8 h-8" />
+          <House className="w-8 h-8" />
           <span>返回首頁</span>
-          <Home className="w-8 h-8" />
+          <House className="w-8 h-8" />
         </button>
       </div>
     </div>
