@@ -46,8 +46,8 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
       className="card mb-8"
     >
       {/* 題目類型標籤 */}
-      <div className="text-center mb-4">
-        <span className="inline-block bg-purple-100 text-purple-600 px-4 py-2 rounded-full text-sm font-semibold">
+      <div className="text-center mb-3 md:mb-4">
+        <span className="inline-block bg-purple-100 text-purple-600 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-semibold">
           {getTypeLabel(question.type)} - 等級 {question.difficulty}
         </span>
       </div>
@@ -57,23 +57,23 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
         <motion.div
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
-          className="text-center text-4xl md:text-5xl mb-6 p-4 bg-yellow-50 rounded-2xl"
+          className="text-center text-3xl md:text-5xl mb-4 md:mb-6 p-3 md:p-4 bg-yellow-50 rounded-xl md:rounded-2xl"
         >
           {question.visual}
         </motion.div>
       )}
 
       {/* 題目文字 */}
-      <div className="text-center mb-8">
-        <h2 className="text-3xl md:text-5xl font-bold text-gray-800 mb-2">
+      <div className="text-center mb-6 md:mb-8">
+        <h2 className="text-2xl md:text-5xl font-bold text-gray-800 mb-2">
           {question.question}
         </h2>
       </div>
 
       {/* 選項按鈕 */}
-      <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 max-w-md mx-auto">
         {question.options.map((option, index) => {
-          let buttonClass = 'btn-answer';
+          let buttonClass = 'btn-answer min-h-[56px] md:min-h-[60px] text-lg md:text-xl';
           
           if (showFeedback && selectedAnswer === option) {
             if (isCorrect) {
@@ -105,14 +105,14 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mt-6"
+          className="text-center mt-4 md:mt-6"
         >
           {isCorrect ? (
-            <div className="text-3xl text-green-600 font-bold">
+            <div className="text-2xl md:text-3xl text-green-600 font-bold">
               🎉 答對了！太棒了！
             </div>
           ) : (
-            <div className="text-2xl text-orange-600 font-bold">
+            <div className="text-xl md:text-2xl text-orange-600 font-bold">
               💪 再試試看，你可以的！
             </div>
           )}
