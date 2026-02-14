@@ -90,6 +90,9 @@ export default function Home() {
     );
   }
 
+  // 除錯訊息 - 檢查渲染狀態
+  console.log('🔍 渲染檢查 - isPlaying:', isPlaying, 'currentQuestion:', currentQuestion);
+
   return (
     <main className="min-h-screen p-4 md:p-8 pb-20">
       <div className="max-w-4xl mx-auto">
@@ -121,7 +124,6 @@ export default function Home() {
         )}
 
         {/* 題目卡片 - 只在開始後顯示 */}
-        {console.log('🔍 渲染檢查 - isPlaying:', isPlaying, 'currentQuestion:', currentQuestion)}
         <AnimatePresence mode="wait">
           {isPlaying && currentQuestion && (
             <QuestionCard
