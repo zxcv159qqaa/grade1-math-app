@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
 
-type QuestionType = 'addition' | 'subtraction' | 'comparison';
+type QuestionType = 'addition' | 'subtraction' | 'compare';
 
 interface Question {
+  id: string;
   question: string;
   answer: string;
   type: QuestionType;
+  difficulty: number;
+  visual?: string;
+  options: string[];
 }
 
 /**
@@ -13,6 +17,25 @@ interface Question {
  */
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * 生成選項陣列（包含正確答案和3個錯誤選項）
+ */
+function generateOptions(correctAnswer: number, min: number, max: number): string[] {
+  const options = new Set<string>();
+  options.add(correctAnswer.toString());
+  
+  // 生成3個不同的錯誤選項
+  while (options.size < 4) {
+    const wrongAnswer = randomInt(min, max);
+    if (wrongAnswer !== correctAnswer) {
+      options.add(wrongAnswer.toString());
+    }
+  }
+  
+  // 打亂選項順序
+  return Array.from(options).sort(() => Math.random() - 0.5);
 }
 
 /**
@@ -25,26 +48,40 @@ function generateAddition(): Question {
   const num2 = randomInt(1, maxNum2);
   const answer = num1 + num2;
   
+  // 生成選項：正確答案 + 3個錯誤選項
+  const options = generateOptions(answer, 1, 20);
+  
   return {
+    id: Date.now().toString(),
     question: `${num1} + ${num2} = ?`,
     answer: answer.toString(),
-    type: 'addition'
+    type: 'addition',
+    difficulty: 1,
+    visual: '🍎'.repeat(num1) + ' + ' + '🍎'.repeat(num2),
+    options
   };
 }
 
 /**
  * 生成減法題目
- * 規則：被減數 1-10，減數小於被減數，結果不為負數
+ * 規則：被減數 2-10，減數小於被減數，結果不為負數
  */
 function generateSubtraction(): Question {
   const num1 = randomInt(2, 10); // 被減數至少為 2
   const num2 = randomInt(1, num1 - 1); // 減數小於被減數
   const answer = num1 - num2;
   
+  // 生成選項：正確答案 + 3個錯誤選項
+  const options = generateOptions(answer, 0, 10);
+  
   return {
+    id: Date.now().toString(),
     question: `${num1} - ${num2} = ?`,
     answer: answer.toString(),
-    type: 'subtraction'
+    type: 'subtraction',
+    difficulty: 1,
+    visual: '🍊'.repeat(num1) + ' ➖ ' + '❌'.repeat(num2),
+    options
   };
 }
 
@@ -64,9 +101,13 @@ function generateComparison(): Question {
   const answer = num1 > num2 ? '>' : '<';
   
   return {
+    id: Date.now().toString(),
     question: `${num1} __ ${num2}`,
     answer: answer,
-    type: 'comparison'
+    type: 'compare',
+    difficulty: 1,
+    visual: '🔢',
+    options: ['>', '<']
   };
 }
 
@@ -74,7 +115,7 @@ function generateComparison(): Question {
  * 隨機生成一題數學題目
  */
 function generateQuestion(): Question {
-  const types: QuestionType[] = ['addition', 'subtraction', 'comparison'];
+  const types: QuestionType[] = ['addition', 'subtraction', 'compare'];
   const randomType = types[randomInt(0, types.length - 1)];
   
   switch (randomType) {
@@ -82,7 +123,7 @@ function generateQuestion(): Question {
       return generateAddition();
     case 'subtraction':
       return generateSubtraction();
-    case 'comparison':
+    case 'compare':
       return generateComparison();
     default:
       return generateAddition();
