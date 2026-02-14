@@ -3,6 +3,11 @@
 import { useState } from 'react';
 import { Question } from '@/lib/question-generator';
 import { useSound } from '@/hooks/useSound';
+import { 
+  Plus, Minus, Search, Hash, HelpCircle, FileText,
+  PartyPopper, Star, Sparkles, ThumbsUp, Smile, ChevronDown,
+  CheckCircle2, XCircle
+} from 'lucide-react';
 
 interface QuestionCardProps {
   question: Question;
@@ -31,28 +36,25 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
   };
 
   const isCorrect = selectedAnswer === question.answer;
+  const TypeIcon = getTypeIcon(question.type);
 
   return (
     <div className="relative">
-      {/* 裝飾性背景元素 */}
-      <div className="absolute -top-6 -left-6 text-7xl animate-bounce opacity-40">🎈</div>
-      <div className="absolute -top-6 -right-6 text-7xl animate-bounce opacity-40" style={{ animationDelay: '0.3s' }}>🎈</div>
-      
       <div className="bg-white rounded-3xl p-8 shadow-2xl border-8 border-blue-300 relative overflow-hidden">
         {/* 背景裝飾圖案 */}
-        <div className="absolute top-0 right-0 text-9xl opacity-5">
-          {getTypeEmoji(question.type)}
+        <div className="absolute top-4 right-4 opacity-5">
+          <TypeIcon className="w-32 h-32" />
         </div>
-        <div className="absolute bottom-0 left-0 text-9xl opacity-5">
-          {getTypeEmoji(question.type)}
+        <div className="absolute bottom-4 left-4 opacity-5">
+          <TypeIcon className="w-32 h-32" />
         </div>
 
         {/* 題目類型標籤 */}
         <div className="text-center mb-6 relative z-10">
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 px-8 py-4 rounded-full border-4 border-purple-300 shadow-lg">
-            <span className="text-4xl animate-pulse">{getTypeEmoji(question.type)}</span>
+            <TypeIcon className="w-8 h-8 text-purple-600 animate-pulse" />
             <span className="text-2xl font-bold text-gray-800">{getTypeLabel(question.type)}</span>
-            <span className="text-4xl animate-pulse" style={{ animationDelay: '0.5s' }}>{getTypeEmoji(question.type)}</span>
+            <TypeIcon className="w-8 h-8 text-purple-600 animate-pulse" />
           </div>
         </div>
 
@@ -80,28 +82,29 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
         <div className="mb-6 relative z-10">
           {/* 提示文字 */}
           <div className="flex items-center justify-center gap-3 mb-4">
-            <span className="text-4xl animate-bounce">👇</span>
+            <ChevronDown className="w-8 h-8 text-gray-600 animate-bounce" />
             <p className="text-xl font-bold text-gray-600">選擇答案</p>
-            <span className="text-4xl animate-bounce" style={{ animationDelay: '0.3s' }}>👇</span>
+            <ChevronDown className="w-8 h-8 text-gray-600 animate-bounce" />
           </div>
 
           {/* 答案按鈕 - 全部橫向排在一起 */}
           <div className="flex justify-center gap-4 flex-wrap max-w-4xl mx-auto">
             {(question.options || []).map((option, index) => {
               let buttonClass = 'min-w-[120px] font-bold text-5xl py-8 px-8 rounded-3xl transition-all border-6 shadow-xl hover:scale-110 ';
-              let decoration = '';
+              let showCheck = false;
+              let showX = false;
               
               if (showFeedback && selectedAnswer === option) {
                 if (isCorrect) {
                   buttonClass += 'bg-gradient-to-br from-green-400 to-green-500 border-green-600 text-white animate-pulse scale-110';
-                  decoration = '✅';
+                  showCheck = true;
                 } else {
                   buttonClass += 'bg-gradient-to-br from-red-400 to-red-500 border-red-600 text-white animate-shake';
-                  decoration = '❌';
+                  showX = true;
                 }
               } else if (showFeedback && option === question.answer) {
                 buttonClass += 'bg-gradient-to-br from-green-400 to-green-500 border-green-600 text-white animate-pulse scale-110';
-                decoration = '✅';
+                showCheck = true;
               } else {
                 buttonClass += 'bg-gradient-to-br from-white to-gray-50 border-blue-300 text-gray-900 hover:border-blue-400 hover:shadow-2xl';
               }
@@ -115,7 +118,8 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
                 >
                   <div className="flex flex-col items-center gap-2">
                     <span>{option}</span>
-                    {decoration && <span className="text-4xl animate-bounce">{decoration}</span>}
+                    {showCheck && <CheckCircle2 className="w-10 h-10 animate-bounce" />}
+                    {showX && <XCircle className="w-10 h-10 animate-bounce" />}
                   </div>
                 </button>
               );
@@ -128,48 +132,48 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
           <div className="text-center mt-8 relative z-10">
             {isCorrect ? (
               <div className="bg-gradient-to-br from-green-100 via-green-50 to-green-100 rounded-3xl p-8 border-6 border-green-300 shadow-2xl relative overflow-hidden">
-                {/* 慶祝動畫背景 */}
-                <div className="absolute inset-0 flex items-center justify-around text-6xl opacity-20">
-                  <span className="animate-bounce">🎉</span>
-                  <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>⭐</span>
-                  <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>🎊</span>
-                  <span className="animate-bounce" style={{ animationDelay: '0.6s' }}>✨</span>
+                {/* 慶祝圖示背景 */}
+                <div className="absolute inset-0 flex items-center justify-around opacity-10">
+                  <PartyPopper className="w-16 h-16 animate-bounce" />
+                  <Star className="w-16 h-16 animate-bounce" style={{ animationDelay: '0.2s' } as any} />
+                  <Sparkles className="w-16 h-16 animate-bounce" style={{ animationDelay: '0.4s' } as any} />
+                  <Star className="w-16 h-16 animate-bounce" style={{ animationDelay: '0.6s' } as any} />
                 </div>
                 
                 <div className="relative z-10">
                   <div className="flex items-center justify-center gap-4 mb-4">
-                    <span className="text-8xl animate-bounce">🎉</span>
-                    <span className="text-8xl animate-bounce" style={{ animationDelay: '0.2s' }}>⭐</span>
-                    <span className="text-8xl animate-bounce" style={{ animationDelay: '0.4s' }}>🎉</span>
+                    <PartyPopper className="w-20 h-20 text-green-600 animate-bounce" />
+                    <Star className="w-20 h-20 text-yellow-500 animate-bounce" style={{ animationDelay: '0.2s' } as any} />
+                    <PartyPopper className="w-20 h-20 text-green-600 animate-bounce" style={{ animationDelay: '0.4s' } as any} />
                   </div>
                   <div className="text-5xl text-green-700 font-bold mb-2">
                     答對了！
                   </div>
                   <div className="text-3xl text-green-600 font-bold">
-                    太棒了！你好厲害！
+                    太棒了！你好厉害！
                   </div>
                   <div className="mt-4 flex items-center justify-center gap-3">
-                    <span className="text-6xl animate-pulse">⭐</span>
+                    <Star className="w-16 h-16 text-yellow-500 animate-pulse" />
                     <span className="text-2xl text-green-700 font-bold">+1 星星</span>
-                    <span className="text-6xl animate-pulse">⭐</span>
+                    <Star className="w-16 h-16 text-yellow-500 animate-pulse" />
                   </div>
                 </div>
               </div>
             ) : (
               <div className="bg-gradient-to-br from-orange-100 via-orange-50 to-orange-100 rounded-3xl p-8 border-6 border-orange-300 shadow-2xl relative overflow-hidden">
-                {/* 鼓勵圖案背景 */}
-                <div className="absolute inset-0 flex items-center justify-around text-6xl opacity-20">
-                  <span className="animate-bounce">💪</span>
-                  <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>🌟</span>
-                  <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>💪</span>
-                  <span className="animate-bounce" style={{ animationDelay: '0.6s' }}>🌟</span>
+                {/* 鼓勵圖示背景 */}
+                <div className="absolute inset-0 flex items-center justify-around opacity-10">
+                  <ThumbsUp className="w-16 h-16 animate-bounce" />
+                  <Star className="w-16 h-16 animate-bounce" style={{ animationDelay: '0.2s' } as any} />
+                  <ThumbsUp className="w-16 h-16 animate-bounce" style={{ animationDelay: '0.4s' } as any} />
+                  <Star className="w-16 h-16 animate-bounce" style={{ animationDelay: '0.6s' } as any} />
                 </div>
                 
                 <div className="relative z-10">
                   <div className="flex items-center justify-center gap-4 mb-4">
-                    <span className="text-8xl animate-bounce">💪</span>
-                    <span className="text-8xl animate-bounce" style={{ animationDelay: '0.2s' }}>😊</span>
-                    <span className="text-8xl animate-bounce" style={{ animationDelay: '0.4s' }}>💪</span>
+                    <ThumbsUp className="w-20 h-20 text-orange-600 animate-bounce" />
+                    <Smile className="w-20 h-20 text-orange-600 animate-bounce" style={{ animationDelay: '0.2s' } as any} />
+                    <ThumbsUp className="w-20 h-20 text-orange-600 animate-bounce" style={{ animationDelay: '0.4s' } as any} />
                   </div>
                   <div className="text-4xl text-orange-700 font-bold mb-2">
                     再試試看！
@@ -183,10 +187,6 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
           </div>
         )}
       </div>
-
-      {/* 底部裝飾元素 */}
-      <div className="absolute -bottom-6 left-1/4 text-7xl animate-bounce opacity-40" style={{ animationDelay: '0.6s' }}>🌟</div>
-      <div className="absolute -bottom-6 right-1/4 text-7xl animate-bounce opacity-40" style={{ animationDelay: '0.9s' }}>⭐</div>
     </div>
   );
 }
@@ -202,13 +202,13 @@ function getTypeLabel(type: string): string {
   return labels[type] || '練習';
 }
 
-function getTypeEmoji(type: string): string {
-  const emojis: Record<string, string> = {
-    addition: '➕',
-    subtraction: '➖',
-    compare: '🔍',
-    counting: '🔢',
-    'missing-number': '❓'
+function getTypeIcon(type: string) {
+  const icons: Record<string, any> = {
+    addition: Plus,
+    subtraction: Minus,
+    compare: Search,
+    counting: Hash,
+    'missing-number': HelpCircle
   };
-  return emojis[type] || '📝';
+  return icons[type] || FileText;
 }
