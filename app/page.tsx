@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Question } from '@/lib/question-generator';
 import QuestionCard from '@/components/QuestionCard';
 import RewardDisplay from '@/components/RewardDisplay';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
@@ -25,23 +24,18 @@ export default function Home() {
 
   // 獲取新題目
   const fetchNewQuestion = async () => {
-    console.log('📡 開始獲取新題目');
     try {
       const res = await fetch('/api/question');
       const data = await res.json();
-      console.log('✅ 題目獲取成功:', data);
       setCurrentQuestion(data);
-      console.log('📋 currentQuestion 已更新');
     } catch (error) {
-      console.error('❌ 獲取題目失敗:', error);
+      console.error('獲取題目失敗:', error);
     }
   };
 
   // 開始練習
   const startPractice = () => {
-    console.log('🚀 開始練習按鈕被點擊');
     setIsPlaying(true);
-    console.log('📝 isPlaying 設置為 true');
     fetchNewQuestion();
   };
 
@@ -84,77 +78,69 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-2xl">載入中...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-3xl font-bold text-gray-600">
+          <span className="text-6xl mr-2">📚</span> 載入中...
+        </div>
       </div>
     );
   }
 
-  // 除錯訊息 - 檢查渲染狀態
-  console.log('🔍 渲染檢查 - isPlaying:', isPlaying, 'currentQuestion:', currentQuestion);
-
   return (
-    <main className="min-h-screen p-4 md:p-8 pb-20">
+    <main className="min-h-screen bg-gray-50 p-4 md:p-8 pb-20">
       <div className="max-w-4xl mx-auto">
         {/* 標題區 */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl md:text-5xl font-bold text-purple-600 mb-2">
-            🎓 小學一年級數學練習
+        <div className="text-center mb-6 bg-white rounded-2xl p-6 shadow-lg border-2 border-gray-200">
+          <div className="text-6xl mb-3">🎓</div>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
+            小學一年級數學練習
           </h1>
-          <p className="text-sm md:text-base text-gray-600">加油！每答對一題就可以得到星星 ⭐</p>
+          <p className="text-lg md:text-xl text-gray-600 font-medium">
+            加油！每答對一題就可以得到星星 <span className="text-3xl">⭐</span>
+          </p>
         </div>
 
         {/* 獎勵顯示 */}
         <RewardDisplay rewards={rewards} />
 
-        {/* 開始練習按鈕 - 只在未開始時顯示 */}
+        {/* 開始練習按鈕 */}
         {!isPlaying && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center my-8"
-          >
+          <div className="text-center my-12">
             <button
               onClick={startPractice}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-8 rounded-2xl text-xl md:text-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 min-h-[60px] w-full md:w-auto"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 px-12 rounded-full text-2xl md:text-3xl shadow-lg hover:shadow-xl transition-all w-full md:w-auto border-2 border-blue-600"
             >
-              🚀 開始練習
+              <span className="text-4xl mr-3">🚀</span>
+              開始練習
             </button>
-          </motion.div>
+          </div>
         )}
 
-        {/* 題目卡片 - 只在開始後顯示 */}
-        <AnimatePresence mode="wait">
-          {isPlaying && currentQuestion && (
-            <QuestionCard
-              key={currentQuestion.question}
-              question={currentQuestion}
-              onAnswer={handleAnswer}
-            />
-          )}
-        </AnimatePresence>
+        {/* 題目卡片 */}
+        {isPlaying && currentQuestion && (
+          <QuestionCard
+            key={currentQuestion.question}
+            question={currentQuestion}
+            onAnswer={handleAnswer}
+          />
+        )}
 
         {/* 慶祝動畫 */}
-        <AnimatePresence>
-          {showCelebration && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0 }}
-              className="fixed inset-0 flex items-center justify-center pointer-events-none z-50"
-            >
-              <div className="text-9xl">🎉</div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {showCelebration && (
+          <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
+            <div className="text-[200px]">🎉</div>
+          </div>
+        )}
 
         {/* 家長入口 */}
-        <div className="text-center mt-8">
+        <div className="text-center mt-12">
           <a
             href="/dashboard"
-            className="text-sm text-gray-500 hover:text-gray-700 underline"
+            className="inline-flex items-center gap-2 text-base md:text-lg text-blue-600 hover:text-blue-700 font-semibold bg-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all border-2 border-gray-200"
           >
-            家長看這裡 →
+            <span className="text-2xl">👨‍👩‍👧</span>
+            家長看這裡
+            <span className="text-xl">→</span>
           </a>
         </div>
       </div>
