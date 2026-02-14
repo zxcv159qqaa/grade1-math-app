@@ -156,7 +156,7 @@ export async function GET(request: Request) {
     
     const question = generateQuestion(difficulty);
     
-    return NextResponse.json(question, { status: 200 });
+    return NextResponse.json({ success: true, data: question }, { status: 200 });
   } catch (error) {
     console.error('生成題目時發生錯誤:', error);
     
