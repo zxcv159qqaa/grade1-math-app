@@ -1,315 +1,222 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Question } from '@/lib/question-generator';
+import { Question, generateQuestion } from '@/lib/question-generator';
 import QuestionCard from '@/components/QuestionCard';
-import RewardDisplay from '@/components/RewardDisplay';
-import StreakDisplay from '@/components/StreakDisplay';
-import GachaModal from '@/components/GachaModal';
 import { useSound } from '@/hooks/useSound';
-
-type Difficulty = 'easy' | 'medium' | 'hard';
+import GachaModal from '@/components/GachaModal';
+import StreakDisplay from '@/components/StreakDisplay';
 
 export default function Home() {
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  const [rewards, setRewards] = useState({ stars: 0, total_correct: 0, total_questions: 0 });
+  const [question, setQuestion] = useState<Question | null>(null);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [totalAnswered, setTotalAnswered] = useState(0);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [showGacha, setShowGacha] = useState(false);
+  const [gachaReward, setGachaReward] = useState<any>(null);
+  const [lastAnswerCorrect, setLastAnswerCorrect] = useState<boolean | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
-  const [showGachaModal, setShowGachaModal] = useState(false);
-  const [streakKey, setStreakKey] = useState(0); // 用於刷新連續天數
+  const { play } = useSound();
 
-  // 音效系統
-  const { play, isEnabled, toggle: toggleSound } = useSound();
-
-  // 載入獎勵資訊
   useEffect(() => {
-    fetch('/api/rewards')
-      .then(res => res.json())
-      .then(data => {
-        setRewards(data);
-        setLoading(false);
-      });
+    setQuestion(generateQuestion());
+    loadProgress();
   }, []);
 
-  // 獲取新題目
-  const fetchNewQuestion = async () => {
+  const loadProgress = async () => {
     try {
-      const res = await fetch(`/api/question?difficulty=${difficulty}`);
-      const data = await res.json();
-      setCurrentQuestion(data);
+      const response = await fetch('/api/progress');
+      if (response.ok) {
+        const data = await response.json();
+        setScore(data.score || 0);
+        setStreak(data.streak || 0);
+        setTotalAnswered(data.totalAnswered || 0);
+        setCorrectAnswers(data.correctAnswers || 0);
+      }
     } catch (error) {
-      console.error('獲取題目失敗:', error);
+      console.error('Failed to load progress:', error);
     }
   };
 
-  // 開始練習
-  const startPractice = () => {
-    play('click');
-    setIsPlaying(true);
-    fetchNewQuestion();
+  const saveProgress = async (newScore: number, newStreak: number, isCorrect: boolean) => {
+    try {
+      await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          score: newScore,
+          streak: newStreak,
+          totalAnswered: totalAnswered + 1,
+          correctAnswers: correctAnswers + (isCorrect ? 1 : 0),
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to save progress:', error);
+    }
   };
 
-  // 處理答案提交
-  const handleAnswer = async (selectedAnswer: string) => {
-    if (!currentQuestion) return;
-
-    const isCorrect = selectedAnswer === currentQuestion.answer;
-
-    // 播放音效
-    if (isCorrect) {
-      play('correct');
-      play('star'); // 得星星音效
-    } else {
-      play('wrong');
-    }
-
-    // 提交答案到後端
-    const res = await fetch('/api/answer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        question: currentQuestion.question,
-        question_type: currentQuestion.type,
-        difficulty: currentQuestion.difficulty,
-        correct_answer: currentQuestion.answer,
-        user_answer: selectedAnswer,
-        is_correct: isCorrect,
-      }),
-    });
-
-    const data = await res.json();
+  const handleAnswer = async (isCorrect: boolean) => {
+    setLastAnswerCorrect(isCorrect);
+    const newTotalAnswered = totalAnswered + 1;
+    const newCorrectAnswers = correctAnswers + (isCorrect ? 1 : 0);
     
-    // 更新獎勵顯示
-    setRewards(data.rewards);
+    setTotalAnswered(newTotalAnswered);
+    setCorrectAnswers(newCorrectAnswers);
 
-    // 更新連續天數
-    await fetch('/api/streak', { method: 'POST' });
-    setStreakKey(prev => prev + 1); // 刷新連續天數顯示
-
-    // 如果答對，顯示慶祝動畫
     if (isCorrect) {
-      setShowCelebration(true);
-      setTimeout(() => setShowCelebration(false), 2000);
+      const newScore = score + 10;
+      const newStreak = streak + 1;
+      setScore(newScore);
+      setStreak(newStreak);
+      play('correct');
+      
+      await saveProgress(newScore, newStreak, true);
+
+      if (newStreak % 5 === 0) {
+        setShowCelebration(true);
+        setTimeout(() => setShowCelebration(false), 2000);
+      }
+
+      if (newScore % 50 === 0) {
+        try {
+          const response = await fetch('/api/gacha', { method: 'POST' });
+          const data = await response.json();
+          if (data.reward) {
+            setGachaReward(data.reward);
+            setShowGacha(true);
+            play('reward');
+          }
+        } catch (error) {
+          console.error('Gacha error:', error);
+        }
+      }
+    } else {
+      const newStreak = 0;
+      setStreak(newStreak);
+      play('incorrect');
+      await saveProgress(score, newStreak, false);
     }
 
-    // 延遲載入下一題
     setTimeout(() => {
-      fetchNewQuestion();
-    }, isCorrect ? 2000 : 1500);
+      setQuestion(generateQuestion());
+      setLastAnswerCorrect(null);
+    }, 1500);
   };
 
-  // 處理扭蛋抽取
-  const handleGachaDraw = async () => {
-    play('star');
-    // 刷新獎勵資料
-    const res = await fetch('/api/rewards');
-    const data = await res.json();
-    setRewards(data);
-  };
+  const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
 
-  // 切換難度
-  const handleDifficultyChange = (newDifficulty: Difficulty) => {
-    play('click');
-    setDifficulty(newDifficulty);
-    if (isPlaying) {
-      // 如果正在練習，立即載入新難度的題目
-      setTimeout(() => {
-        fetch(`/api/question?difficulty=${newDifficulty}`)
-          .then(res => res.json())
-          .then(data => setCurrentQuestion(data));
-      }, 100);
-    }
-  };
-
-  if (loading) {
+  if (!question) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-3xl font-bold text-gray-600">
-          <span className="text-6xl mr-2">📚</span> 載入中...
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-400 via-pink-300 to-blue-300">
+        <div className="text-2xl font-bold text-white animate-pulse">載入中...</div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 md:p-8 pb-20">
-      <div className="max-w-4xl mx-auto">
-        {/* 標題區 */}
-        <div className="text-center mb-6 bg-white rounded-2xl p-6 shadow-lg border-2 border-gray-200">
-          <div className="text-6xl mb-3">🎓</div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
-            小學一年級數學練習
-          </h1>
-          <p className="text-lg md:text-xl text-gray-600 font-medium">
-            加油！每答對一題就可以得到星星 <span className="text-3xl">⭐</span>
-          </p>
+    <main className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-300 to-blue-300 p-4 md:p-8 relative overflow-hidden">
+      {/* 背景裝飾 - 浮動的數學符號和可愛圖案 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 text-6xl animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }}>🌟</div>
+        <div className="absolute top-20 right-20 text-5xl animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }}>✨</div>
+        <div className="absolute bottom-20 left-20 text-6xl animate-bounce" style={{ animationDelay: '1s', animationDuration: '3.5s' }}>🎈</div>
+        <div className="absolute bottom-10 right-10 text-5xl animate-bounce" style={{ animationDelay: '1.5s', animationDuration: '2.8s' }}>🎨</div>
+        <div className="absolute top-1/3 left-1/4 text-4xl animate-spin" style={{ animationDuration: '10s' }}>➕</div>
+        <div className="absolute top-2/3 right-1/4 text-4xl animate-spin" style={{ animationDuration: '12s' }}>➖</div>
+        <div className="absolute top-1/2 left-10 text-5xl animate-pulse">🌈</div>
+        <div className="absolute top-1/4 right-1/3 text-4xl animate-pulse" style={{ animationDelay: '1s' }}>🎪</div>
+      </div>
+
+      <div className="max-w-4xl mx-auto relative z-10">
+        {/* 標題區域 - 超大超可愛 */}
+        <div className="text-center mb-8 transform hover:scale-105 transition-transform">
+          <div className="inline-block bg-white/90 backdrop-blur-sm rounded-3xl px-8 py-6 shadow-2xl border-4 border-yellow-300">
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <span className="text-6xl animate-bounce" style={{ animationDuration: '1s' }}>🎯</span>
+              <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                數學大冒險
+              </h1>
+              <span className="text-6xl animate-bounce" style={{ animationDuration: '1s', animationDelay: '0.2s' }}>🚀</span>
+            </div>
+            <p className="text-2xl text-gray-600 font-bold">一起來挑戰吧！</p>
+          </div>
+        </div>
+
+        {/* 統計卡片區域 - 三張華麗卡片橫排 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {/* 分數卡片 */}
+          <div className="bg-gradient-to-br from-yellow-300 to-orange-400 rounded-2xl p-6 shadow-xl transform hover:scale-105 hover:rotate-1 transition-all border-4 border-yellow-500">
+            <div className="text-center">
+              <div className="text-6xl mb-3 animate-bounce">🏆</div>
+              <div className="text-white text-sm font-bold mb-1">總分數</div>
+              <div className="text-5xl font-black text-white drop-shadow-lg">{score}</div>
+            </div>
+          </div>
+
+          {/* 連續答對卡片 */}
+          <div className="bg-gradient-to-br from-green-300 to-emerald-400 rounded-2xl p-6 shadow-xl transform hover:scale-105 hover:rotate-1 transition-all border-4 border-green-500">
+            <div className="text-center">
+              <div className="text-6xl mb-3 animate-pulse">🔥</div>
+              <div className="text-white text-sm font-bold mb-1">連續答對</div>
+              <div className="text-5xl font-black text-white drop-shadow-lg">{streak}</div>
+              {streak >= 5 && (
+                <div className="mt-2 text-xl font-bold text-yellow-200 animate-bounce">太厲害了！</div>
+              )}
+            </div>
+          </div>
+
+          {/* 正確率卡片 */}
+          <div className="bg-gradient-to-br from-blue-300 to-purple-400 rounded-2xl p-6 shadow-xl transform hover:scale-105 hover:rotate-1 transition-all border-4 border-blue-500">
+            <div className="text-center">
+              <div className="text-6xl mb-3 animate-spin" style={{ animationDuration: '3s' }}>🎯</div>
+              <div className="text-white text-sm font-bold mb-1">正確率</div>
+              <div className="text-5xl font-black text-white drop-shadow-lg">{accuracy}%</div>
+              <div className="text-sm text-white/90 mt-1">{correctAnswers}/{totalAnswered}</div>
+            </div>
+          </div>
         </div>
 
         {/* 連續天數顯示 */}
-        <StreakDisplay key={streakKey} />
-
-        {/* 音效開關 */}
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={toggleSound}
-            className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow border-2 border-gray-200 hover:bg-gray-50 transition-all"
-          >
-            <span className="text-2xl">{isEnabled ? '🔊' : '🔇'}</span>
-            <span className="text-sm font-medium text-gray-700">
-              {isEnabled ? '音效開啟' : '音效關閉'}
-            </span>
-          </button>
+        <div className="mb-8">
+          <StreakDisplay />
         </div>
-
-        {/* 獎勵顯示 */}
-        <RewardDisplay rewards={rewards} />
-
-        {/* 扭蛋按鈕 */}
-        <div className="mb-6">
-          <button
-            onClick={() => {
-              play('click');
-              setShowGachaModal(true);
-            }}
-            disabled={rewards.stars < 10}
-            className={`w-full py-4 rounded-2xl font-bold text-xl shadow-lg border-2 transition-all ${
-              rewards.stars >= 10
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-600 hover:shadow-xl hover:scale-105'
-                : 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed'
-            }`}
-          >
-            <span className="text-3xl mr-2">🎰</span>
-            扭蛋機 (10⭐)
-            {rewards.stars >= 10 && <span className="ml-2 text-2xl">✨</span>}
-          </button>
-        </div>
-
-        {/* 難度選擇 */}
-        {!isPlaying && (
-          <div className="mb-8 bg-white rounded-2xl p-6 shadow-lg border-2 border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-              <span className="text-3xl mr-2">🎯</span>
-              選擇難度
-            </h2>
-            <div className="grid grid-cols-3 gap-4">
-              <button
-                onClick={() => handleDifficultyChange('easy')}
-                className={`py-4 px-6 rounded-xl font-bold text-lg transition-all border-2 ${
-                  difficulty === 'easy'
-                    ? 'bg-green-500 text-white border-green-600 shadow-lg scale-105'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-green-300 hover:shadow'
-                }`}
-              >
-                <div className="text-3xl mb-1">😊</div>
-                簡單
-                <div className="text-xs mt-1 opacity-80">1-10</div>
-              </button>
-              <button
-                onClick={() => handleDifficultyChange('medium')}
-                className={`py-4 px-6 rounded-xl font-bold text-lg transition-all border-2 ${
-                  difficulty === 'medium'
-                    ? 'bg-yellow-500 text-white border-yellow-600 shadow-lg scale-105'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-yellow-300 hover:shadow'
-                }`}
-              >
-                <div className="text-3xl mb-1">😐</div>
-                中等
-                <div className="text-xs mt-1 opacity-80">1-20</div>
-              </button>
-              <button
-                onClick={() => handleDifficultyChange('hard')}
-                className={`py-4 px-6 rounded-xl font-bold text-lg transition-all border-2 ${
-                  difficulty === 'hard'
-                    ? 'bg-red-500 text-white border-red-600 shadow-lg scale-105'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-red-300 hover:shadow'
-                }`}
-              >
-                <div className="text-3xl mb-1">😤</div>
-                困難
-                <div className="text-xs mt-1 opacity-80">1-50</div>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* 難度顯示（練習中） */}
-        {isPlaying && (
-          <div className="mb-4 flex items-center justify-center gap-4">
-            <div className="bg-white px-6 py-3 rounded-full shadow border-2 border-gray-200 font-bold">
-              <span className="text-2xl mr-2">
-                {difficulty === 'easy' ? '😊' : difficulty === 'medium' ? '😐' : '😤'}
-              </span>
-              目前難度：
-              <span className={`ml-2 ${
-                difficulty === 'easy' ? 'text-green-600' :
-                difficulty === 'medium' ? 'text-yellow-600' :
-                'text-red-600'
-              }`}>
-                {difficulty === 'easy' ? '簡單' : difficulty === 'medium' ? '中等' : '困難'}
-              </span>
-            </div>
-            <button
-              onClick={() => {
-                play('click');
-                setIsPlaying(false);
-                setCurrentQuestion(null);
-              }}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-full font-bold shadow border-2 border-gray-600 transition-all"
-            >
-              切換難度
-            </button>
-          </div>
-        )}
-
-        {/* 開始練習按鈕 */}
-        {!isPlaying && (
-          <div className="text-center my-12">
-            <button
-              onClick={startPractice}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 px-12 rounded-full text-2xl md:text-3xl shadow-lg hover:shadow-xl transition-all w-full md:w-auto border-2 border-blue-600 hover:scale-105"
-            >
-              <span className="text-4xl mr-3">🚀</span>
-              開始練習
-            </button>
-          </div>
-        )}
 
         {/* 題目卡片 */}
-        {isPlaying && currentQuestion && (
-          <QuestionCard
-            key={currentQuestion.question}
-            question={currentQuestion}
-            onAnswer={handleAnswer}
+        <QuestionCard question={question} onAnswer={handleAnswer} />
+
+        {/* 慶祝動畫 - 每5題連對 */}
+        {showCelebration && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="text-9xl animate-ping">🎉</div>
+            <div className="absolute text-6xl font-black text-white animate-bounce">
+              太棒了！連對 {streak} 題！
+            </div>
+          </div>
+        )}
+
+        {/* 抽獎彈窗 */}
+        {showGacha && gachaReward && (
+          <GachaModal
+            reward={gachaReward}
+            onClose={() => {
+              setShowGacha(false);
+              setGachaReward(null);
+            }}
           />
         )}
 
-        {/* 慶祝動畫 */}
-        {showCelebration && (
-          <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
-            <div className="text-[200px]">🎉</div>
+        {/* 提示區域 */}
+        <div className="mt-8 text-center">
+          <div className="inline-block bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg border-2 border-pink-300">
+            <div className="flex items-center gap-3">
+              <span className="text-4xl">💡</span>
+              <div className="text-left">
+                <p className="text-lg font-bold text-gray-700">小提示：</p>
+                <p className="text-gray-600">每答對一題得 10 分，每 50 分可以抽一次獎！</p>
+              </div>
+            </div>
           </div>
-        )}
-
-        {/* 扭蛋彈窗 */}
-        <GachaModal
-          isOpen={showGachaModal}
-          onClose={() => setShowGachaModal(false)}
-          currentStars={rewards.stars}
-          onGachaDraw={handleGachaDraw}
-        />
-
-        {/* 家長入口 */}
-        <div className="text-center mt-12">
-          <a
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-base md:text-lg text-blue-600 hover:text-blue-700 font-semibold bg-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all border-2 border-gray-200"
-          >
-            <span className="text-2xl">👨‍👩‍👧</span>
-            家長看這裡
-            <span className="text-xl">→</span>
-          </a>
         </div>
       </div>
     </main>
