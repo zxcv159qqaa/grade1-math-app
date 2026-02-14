@@ -72,7 +72,7 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
 
       {/* 選項按鈕 */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 max-w-md mx-auto">
-        {question.options.map((option, index) => {
+        {(question.options || []).map((option, index) => {
           let buttonClass = 'btn-answer min-h-[56px] md:min-h-[60px] text-lg md:text-xl';
           
           if (showFeedback && selectedAnswer === option) {
