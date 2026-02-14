@@ -25,14 +25,23 @@ export default function Home() {
 
   // 獲取新題目
   const fetchNewQuestion = async () => {
-    const res = await fetch('/api/question');
-    const data = await res.json();
-    setCurrentQuestion(data);
+    console.log('📡 開始獲取新題目');
+    try {
+      const res = await fetch('/api/question');
+      const data = await res.json();
+      console.log('✅ 題目獲取成功:', data);
+      setCurrentQuestion(data);
+      console.log('📋 currentQuestion 已更新');
+    } catch (error) {
+      console.error('❌ 獲取題目失敗:', error);
+    }
   };
 
   // 開始練習
   const startPractice = () => {
+    console.log('🚀 開始練習按鈕被點擊');
     setIsPlaying(true);
+    console.log('📝 isPlaying 設置為 true');
     fetchNewQuestion();
   };
 
@@ -112,6 +121,7 @@ export default function Home() {
         )}
 
         {/* 題目卡片 - 只在開始後顯示 */}
+        {console.log('🔍 渲染檢查 - isPlaying:', isPlaying, 'currentQuestion:', currentQuestion)}
         <AnimatePresence mode="wait">
           {isPlaying && currentQuestion && (
             <QuestionCard
