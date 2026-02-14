@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Question } from '@/lib/question-generator';
-import { motion } from 'framer-motion';
 
 interface QuestionCardProps {
   question: Question;
@@ -14,21 +13,13 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
   const [showFeedback, setShowFeedback] = useState(false);
 
   const handleSelect = (answer: string) => {
-    if (showFeedback) return; // 防止重複點擊
+    if (showFeedback) return;
 
     setSelectedAnswer(answer);
     setShowFeedback(true);
 
     const isCorrect = answer === question.answer;
 
-    // 播放音效（會在後續加入）
-    if (isCorrect) {
-      // 正確音效
-    } else {
-      // 錯誤音效
-    }
-
-    // 延遲後通知父組件
     setTimeout(() => {
       onAnswer(answer);
       setSelectedAnswer(null);
@@ -39,86 +30,79 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
   const isCorrect = selectedAnswer === question.answer;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="card mb-8"
-    >
+    <div className="bg-white rounded-2xl p-8 shadow-lg mb-8 border-2 border-gray-200">
       {/* 題目類型標籤 */}
-      <div className="text-center mb-3 md:mb-4">
-        <span className="inline-block bg-purple-100 text-purple-600 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-semibold">
-          {getTypeLabel(question.type)} - 等級 {question.difficulty}
+      <div className="text-center mb-6">
+        <span className="inline-block bg-gray-100 text-gray-800 px-6 py-3 rounded-full text-lg font-bold border-2 border-gray-300">
+          {getTypeEmoji(question.type)} {getTypeLabel(question.type)}
         </span>
       </div>
 
       {/* 視覺化顯示 */}
       {question.visual && (
-        <motion.div
-          initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
-          className="text-center text-3xl md:text-5xl mb-4 md:mb-6 p-3 md:p-4 bg-yellow-50 rounded-xl md:rounded-2xl"
-        >
+        <div className="text-center text-6xl mb-6 p-6 bg-gray-50 rounded-2xl">
           {question.visual}
-        </motion.div>
+        </div>
       )}
 
       {/* 題目文字 */}
-      <div className="text-center mb-6 md:mb-8">
-        <h2 className="text-2xl md:text-5xl font-bold text-gray-800 mb-2">
+      <div className="text-center mb-8">
+        <h2 className="text-5xl font-bold text-gray-900">
           {question.question}
         </h2>
       </div>
 
-      {/* 選項按鈕 */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4 max-w-md mx-auto">
+      {/* 選項按鈕 - 簡潔設計 */}
+      <div className="grid grid-cols-2 gap-4 max-w-md mx-auto mb-6">
         {(question.options || []).map((option, index) => {
-          let buttonClass = 'btn-answer min-h-[56px] md:min-h-[60px] text-lg md:text-xl';
+          let buttonClass = 'font-bold text-3xl py-8 px-4 rounded-xl transition-all border-3 ';
           
           if (showFeedback && selectedAnswer === option) {
             if (isCorrect) {
-              buttonClass += ' bg-green-400 border-green-500 text-white';
+              buttonClass += 'bg-green-100 border-green-400 text-green-800 border-4';
             } else {
-              buttonClass += ' bg-red-400 border-red-500 text-white';
+              buttonClass += 'bg-red-100 border-red-400 text-red-800 border-4';
             }
           } else if (showFeedback && option === question.answer) {
-            buttonClass += ' bg-green-400 border-green-500 text-white';
+            buttonClass += 'bg-green-100 border-green-400 text-green-800 border-4';
+          } else {
+            buttonClass += 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50 border-2';
           }
 
           return (
-            <motion.button
+            <button
               key={index}
-              whileHover={!showFeedback ? { scale: 1.05 } : {}}
-              whileTap={!showFeedback ? { scale: 0.95 } : {}}
               onClick={() => handleSelect(option)}
               disabled={showFeedback}
               className={buttonClass}
             >
               {option}
-            </motion.button>
+            </button>
           );
         })}
       </div>
 
       {/* 回饋訊息 */}
       {showFeedback && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mt-4 md:mt-6"
-        >
+        <div className="text-center mt-6">
           {isCorrect ? (
-            <div className="text-2xl md:text-3xl text-green-600 font-bold">
-              🎉 答對了！太棒了！
+            <div className="bg-green-50 rounded-2xl p-6 border-2 border-green-200">
+              <div className="text-6xl mb-2">🎉</div>
+              <div className="text-3xl text-green-700 font-bold">
+                答對了！太棒了！
+              </div>
             </div>
           ) : (
-            <div className="text-xl md:text-2xl text-orange-600 font-bold">
-              💪 再試試看，你可以的！
+            <div className="bg-orange-50 rounded-2xl p-6 border-2 border-orange-200">
+              <div className="text-6xl mb-2">💪</div>
+              <div className="text-2xl text-orange-700 font-bold">
+                再試試看，你可以的！
+              </div>
             </div>
           )}
-        </motion.div>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -131,4 +115,15 @@ function getTypeLabel(type: string): string {
     'missing-number': '找數字'
   };
   return labels[type] || '練習';
+}
+
+function getTypeEmoji(type: string): string {
+  const emojis: Record<string, string> = {
+    addition: '➕',
+    subtraction: '➖',
+    compare: '🔍',
+    counting: '🔢',
+    'missing-number': '❓'
+  };
+  return emojis[type] || '📝';
 }
